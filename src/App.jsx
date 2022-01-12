@@ -1,49 +1,33 @@
-import './App.css'
-import { useState } from "react";
-import MultiSelector from './components/MultiSelector';
-import ActiveFilters from "./components/ActiveFilters";
-import { AllBreeds } from './context/DataContext';
-import DataContext from './context/DataContext';
-import { useContext } from "react";
-
+import "./App.css";
+import { useEffect, useState } from "react";
+import MultiSelector from "./components/MultiSelector";
+import ImageGrid from "./components/ImageGrid";
 
 function App() {
+  const [data, setData] = useState(null);
+  const [selected, setSelected] = useState(null);
 
-  const [personName, setPersonName] = useState([]);
-
-  const handleChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setPersonName(
-      // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value,
-    );
-  };
+  useEffect(() => {
+    fetch("https://dog.ceo/api/breeds/list/all")
+      .then((promise) =>
+        promise
+          .json()
+          .then((data) => data && data.message && setData(data.message))
+          .catch((e) => console.log(e))
+      )
+      .catch((e) => console.log(e));
+  }, []);
 
   return (
-    <DataContext.Provider value={{}}>
-      <AllBreeds>
-        <div className='App'>
-          <div className='container-fluid'>
-            <div className='row max-size'>
-              <div className='col-2 menu '>
-                <div className='container-fluid'>
-                  <b>Filtros Activos</b>
-                  <ActiveFilters />
-                  <hr />
-                  <MultiSelector />
-                </div>
-              </div>
-              <div className='col-10'>
-                <span>chao</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </AllBreeds>
-    </DataContext.Provider>
+    <div className="App">
+      <nav className="navbar navbar-light" style={{backgroundColor: "gray"}}>
+        {/* <span className="navbar-brand mb-0 h1">Buscar Perros</span> */}
+        <MultiSelector data={data} setSelected={setSelected} />
+      </nav>
+
+      <ImageGrid data={selected} />
+    </div>
   );
 }
 
-export default App
+export default App;

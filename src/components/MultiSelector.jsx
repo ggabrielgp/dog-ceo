@@ -1,69 +1,145 @@
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import ListItemText from '@mui/material/ListItemText';
-import Select from '@mui/material/Select';
-import Checkbox from '@mui/material/Checkbox';
-import { useState } from "react";
-import { useContext } from 'react';
-import AllBreeds from '../context/DataContext';
+import OutlinedInput from "@mui/material/OutlinedInput";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import ListItemText from "@mui/material/ListItemText";
+import Select from "@mui/material/Select";
+import Checkbox from "@mui/material/Checkbox";
+import { useEffect, useState } from "react";
 
-const names = [
-    'Oliver Hansen',
-    'Van Henry',
-    'April Tucker',
-    'Ralph Hubbard',
-    'Omar Alexander',
-    'Carlos Abbott',
-    'Miriam Wagner',
-    'Bradley Wilkerson',
-    'Virginia Andrews',
-    'Kelly Snyder',
-];
+const MultiSelector = ({ data, setSelected }) => {
+  if (!data) return null;
+  const [selectedBreeds, setSelectedBreeds] = useState([]);
+  const [subBreeds, setSubBreeds] = useState([]);
+  const [selectedSub, setSelectedSub] = useState([]);
+  const [cloneSub, setCloneSub] = useState([]);
 
-const MultiSelector = () => {
-    const [personName, setPersonName] = useState([]);
-    const context = useContext(AllBreeds);
-    const { message } = context;
+  const breeds = Object.keys(data);
 
-    if (!message) return null
+  const handleChange = (event) => {
+    const {
+      target: { value },
+    } = event;
 
-    const breeds = Object.keys(message);
+    setCloneSub(selectedBreeds);
+    setSelectedBreeds(typeof value === "string" ? value.split(",") : value);
+  };
 
-    const handleChange = (event) => {
-        const { target: { value }, } = event;
-        setPersonName(
-            // On autofill we get a stringified value.
-            typeof value === 'string' ? value.split(',') : value,
-        );
-    };
+  const handleChangeSub = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setSelectedSub(typeof value === "string" ? value.split(",") : value);
+  };
 
-    return (
-        <>
+  useEffect(() => {
+    //eliminar
+    const difference = cloneSub.filter(
+      (x) => selectedBreeds.indexOf(x) === -1
+    )[0];
+    if (difference) {
+      setSubBreeds(subBreeds.filter((f) => !f.includes(difference)));
+    }
 
-            <FormControl fullWidth>
-                <InputLabel id="demo-multiple-checkbox-label">Raza</InputLabel>
+    selectedBreeds.map((b) => {
+      const value = Object.getOwnPropertyDescriptors(data)[b].value;
+      if (value[0]) {
+        let arr = [];
+        value.forEach((v) => {
+          let newName = `${v.charAt(0).toUpperCase() + v.slice(1)} ${
+            b.charAt(0).toUpperCase() + b.slice(1)
+          }`;
+          !subBreeds.includes(newName) && arr.push(newName);
+        });
+        if (arr.length > 0) setSubBreeds([...subBreeds, ...arr]);
+      }
+    });
+  }, [selectedBreeds]);
+
+  useEffect(() => {
+    let newArr = [];
+    selectedBreeds.map((b) => {
+      const value = Object.getOwnPropertyDescriptors(data)[b].value;
+      //[]
+      if (!value[0]) {
+        // ["english", "french"]
+        newArr.push(b);
+      } else {
+        value.map((v) => {
+          let newName = `${v.charAt(0).toUpperCase() + v.slice(1)} ${
+            b.charAt(0).toUpperCase() + b.slice(1)
+          }`;
+
+          const obj = selectedSub.find((sub) => sub === newName);
+
+          if (obj) {
+            newArr.push(obj);
+          }
+        });
+      }
+    });
+
+    setSelected(newArr);
+  }, [selectedBreeds, selectedSub]); //Boston Bulldog
+
+  return (
+    <div className="container">
+      <div className="row" style={{ width: "90vw" }}>
+        <div className="col-sm-12 col-lg-6">
+          <FormControl fullWidth>
+            <InputLabel id="multi-select">Raza</InputLabel>
+            <Select
+              className="form-control"
+              size="small"
+              fullWidth
+              labelId="multi-select"
+              id="check-raza"
+              multiple
+              value={selectedBreeds}
+              onChange={handleChange}
+              input={<OutlinedInput label="Tag" />}
+              renderValue={(selected) => selected.join(", ")}
+            >
+              {breeds.map((b) => (
+                <MenuItem key={b} value={b}>
+                  <Checkbox checked={selectedBreeds.indexOf(b) > -1} />
+                  <ListItemText primary={b} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+        <div className="col-sm-12 col-lg-6">
+          {subBreeds.length ? (
+            <>
+              <FormControl fullWidth>
+                <InputLabel id="multi-select-2">Sub</InputLabel>
                 <Select
-                    labelId="demo-multiple-checkbox-label"
-                    id="demo-multiple-checkbox"
-                    multiple
-                    value={personName}
-                    onChange={handleChange}
-                    input={<OutlinedInput label="Tag" />}
-                    renderValue={(selected) => selected.join(', ')}
+                  className="form-control"
+                  size="small"
+                  labelId="multi-select-2"
+                  id="check-subraza"
+                  fullWidth
+                  multiple
+                  value={selectedSub}
+                  onChange={handleChangeSub}
+                  input={<OutlinedInput label="Tag" />}
+                  renderValue={(selected) => selected.join(", ")}
                 >
-                    {breeds.map((b) => (
-                        <MenuItem key={b} value={b}>
-                            <Checkbox checked={personName.indexOf(b) > -1} />
-                            <ListItemText primary={b} />
-                        </MenuItem>
-                    ))}
+                  {subBreeds.map((b) => (
+                    <MenuItem key={b} value={b}>
+                      <Checkbox checked={selectedSub.indexOf(b) > -1} />
+                      <ListItemText primary={b} />
+                    </MenuItem>
+                  ))}
                 </Select>
-            </FormControl>
+              </FormControl>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-        </>
-    );
-}
-
-export default MultiSelector
+export default MultiSelector;
