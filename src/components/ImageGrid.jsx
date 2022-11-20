@@ -17,33 +17,35 @@ const ImageGrid = ({ data }) => {
         /* console.log("splice", responses.splice(toDelete, 1)); */
         setResponses(responses.filter((r) => r !== responses[toDelete]));
     } else {
-      Array.isArray(data) &&  data.length && data.map((d) => {
-        const splittedName = d.toLowerCase().split(" ");
-        const nameForGet = splittedName[1]
-          ? `${splittedName[1]}/${splittedName[0]}`
-          : splittedName[0];
+      Array.isArray(data) &&
+        data.length &&
+        data.map((d) => {
+          const splittedName = d.toLowerCase().split(" ");
+          const nameForGet = splittedName[1]
+            ? `${splittedName[1]}/${splittedName[0]}`
+            : splittedName[0];
 
-        //["malva", "beban"]  --> ["www.google.cl/malva/imagen", "www.google.cl/beban/imagen", "www.google.cl/pape/imagen"]
+          //["malva", "beban"]  --> ["www.google.cl/malva/imagen", "www.google.cl/beban/imagen", "www.google.cl/pape/imagen"]
 
-        fetch(`https://dog.ceo/api/breed/${nameForGet}/images/random`)
-          .then((promise) =>
-            promise
-              .json()
-              .then((data) => {
-                //setResponses([...responses, {nombre: d, url:data.message}])
-                const obj = responses.find((r) => r.nombre === d);
-                if (!obj) {
-                  /* responses.push({ nombre: d, url: data.message }); */
-                  setResponses([
-                    ...responses,
-                    { nombre: d, url: data.message },
-                  ]);
-                }
-              })
-              .catch((e) => console.log(e))
-          )
-          .catch((e) => console.log(e));
-      });
+          fetch(`https://dog.ceo/api/breed/${nameForGet}/images/random`)
+            .then((promise) =>
+              promise
+                .json()
+                .then((data) => {
+                  //setResponses([...responses, {nombre: d, url:data.message}])
+                  const obj = responses.find((r) => r.nombre === d);
+                  if (!obj) {
+                    /* responses.push({ nombre: d, url: data.message }); */
+                    setResponses([
+                      ...responses,
+                      { nombre: d, url: data.message },
+                    ]);
+                  }
+                })
+                .catch((e) => console.log(e))
+            )
+            .catch((e) => console.log(e));
+        });
     }
   }, [data]);
 
